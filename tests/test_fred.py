@@ -49,7 +49,7 @@ def test_a_blank_value_stays_empty_and_its_row_is_kept():
 @pytest.mark.parametrize(
     "csv_text",
     [
-        '<html lang="en">\n<body>Sorry, not found, try again</body>\n</html>\n',  # real case: an unknown series returned a web page
+        '<html lang="en">\n<body>Sorry, not found, try again</body>\n</html>\n',  # a web page instead of data, such as an error page
         "date,UNRATE\n2025-09-01,4.0\n",  # the wrong first column
         "observation_date,UNRATE,EXTRA\n2025-09-01,4.0,1.0\n",  # too many columns
         "",  # nothing at all
