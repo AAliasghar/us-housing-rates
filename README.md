@@ -2,7 +2,7 @@
 
 When US mortgage rates move, how long until house prices follow? And can a simple model forecast price changes better than a plain baseline?
 
-> **Status: work in progress, Stage 1 of 5.** So far there is one tested function that reads a FRED data file into a clean table. There is no download, analysis or model yet, and so no results.
+> **Status: work in progress, Stage 1 of 5.** So far the code downloads a FRED series and reads it into a clean table, with tests. There is no analysis or model yet, and so no results.
 
 ## Data
 
@@ -14,6 +14,16 @@ All data will come from [FRED](https://fred.stlouisfed.org/), the Federal Reserv
 | 30-year mortgage rate | [`MORTGAGE30US`](https://fred.stlouisfed.org/series/MORTGAGE30US) | Weekly |
 
 More inputs are planned, such as unemployment, inflation, housing supply and credit conditions.
+
+## Use it
+
+From the project folder:
+
+```python
+from pipeline.fred import fetch_series
+
+table = fetch_series("MORTGAGE30US")   # a table with two columns: date and value
+```
 
 ## Run the tests
 
@@ -30,8 +40,8 @@ pytest -v
 
 ```
 us-housing-rates/
-├── pipeline/fred.py        # reads a FRED file into a table with date and value columns
-├── tests/test_fred.py      # the rules that code must follow
+├── pipeline/fred.py        # downloads a FRED series and reads it into a table (date, value)
+├── tests/                  # the rules the code must follow; they need no internet
 ├── requirements-dev.txt    # exact tool versions
 └── pyproject.toml          # pytest settings
 ```
