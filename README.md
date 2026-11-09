@@ -1,5 +1,8 @@
 # US Housing and Mortgage Rates
 
+[![CI](https://github.com/AAliasghar/us-housing-rates/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AAliasghar/us-housing-rates/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 When US mortgage rates move, how long until house prices follow? And can a simple model forecast price changes better than a plain baseline?
 
 > **Status: work in progress, Stage 1 of 5.** So far the code downloads a FRED series and reads it into a clean table, with tests. There is no analysis or model yet, and so no results.
@@ -27,7 +30,7 @@ table = fetch_series("MORTGAGE30US")   # a table with two columns: date and valu
 
 ## Run the tests
 
-The tests need no internet.
+The tests need no internet. GitHub also runs them on every push to `main` and every pull request (CI).
 
 ```bash
 python -m venv .venv
@@ -40,10 +43,11 @@ pytest -v
 
 ```
 us-housing-rates/
-├── pipeline/fred.py        # downloads a FRED series and reads it into a table (date, value)
-├── tests/                  # the rules the code must follow; they need no internet
-├── requirements-dev.txt    # exact tool versions
-└── pyproject.toml          # pytest settings
+├── .github/workflows/ci.yml   # CI: runs the tests on GitHub
+├── pipeline/fred.py           # downloads a FRED series and reads it into a table (date, value)
+├── tests/                     # the rules the code must follow; they need no internet
+├── requirements-dev.txt       # exact tool versions
+└── pyproject.toml             # pytest settings
 ```
 
 ## Roadmap
