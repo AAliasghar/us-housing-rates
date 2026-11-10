@@ -11,10 +11,10 @@ When US mortgage rates move, how long until house prices follow? And can a simpl
 
 All data will come from [FRED](https://fred.stlouisfed.org/), the Federal Reserve Bank of St. Louis data site. Raw data is not stored in this repo.
 
-| Data | FRED series | Frequency |
-|---|---|---|
-| House prices | [`HPIPONM226S`](https://fred.stlouisfed.org/series/HPIPONM226S) | Monthly |
-| 30-year mortgage rate | [`MORTGAGE30US`](https://fred.stlouisfed.org/series/MORTGAGE30US) | Weekly |
+| Data                  | FRED series                                                       | Frequency |
+| --------------------- | ----------------------------------------------------------------- | --------- |
+| House prices          | [`HPIPONM226S`](https://fred.stlouisfed.org/series/HPIPONM226S)   | Monthly   |
+| 30-year mortgage rate | [`MORTGAGE30US`](https://fred.stlouisfed.org/series/MORTGAGE30US) | Weekly    |
 
 More inputs are planned, such as unemployment, inflation, housing supply and credit conditions.
 
@@ -30,7 +30,7 @@ weekly = fetch_series("MORTGAGE30US")   # a table with two columns: date and val
 monthly = to_monthly(weekly)            # one row per month: date, value (the average), observations
 ```
 
-`to_monthly` matches FRED's own monthly averages of `MORTGAGE30US` to the cent, in all 667 complete months up to October 2026. FRED leaves a month that is not over yet blank; `to_monthly` gives it a value, and `observations` shows how many weeks it is built from so far.
+`to_monthly` matches FRED's own monthly averages of `MORTGAGE30US` to the cent (checked 2026-11-11), in all 667 complete months up to October 2026. FRED leaves a month that is not over yet blank; `to_monthly` gives it a value, and `observations` shows how many weeks it is built from so far.
 
 ## Run the tests
 
