@@ -64,6 +64,7 @@ us-housing-rates/
 ├── pipeline/transform.py      # monthly averages, and joining series by month
 ├── pipeline/store.py          # saves a table to a CSV file and reads it back
 ├── pipeline/build.py          # the whole pipeline in one command
+├── pipeline/change.py         # % change from each month to N months later (Stage 2)
 ├── tests/                     # the rules the code must follow; they need no internet
 ├── requirements-dev.txt       # exact tool versions
 └── pyproject.toml             # pytest settings
@@ -71,7 +72,7 @@ us-housing-rates/
 
 ## Roadmap
 
-- [ ] Stage 1: download and clean the data, with tests
+- [x] Stage 1: download and clean the data, with tests
 - [ ] Stage 2: lag analysis: how prices change 3, 6, 12 and 24 months after a big move in rates
 - [ ] Stage 3: pipeline with Postgres, Airflow and dbt, and CI
 - [ ] Stage 4: machine learning: a baseline, linear regression and gradient boosting, tested forward in time
