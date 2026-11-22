@@ -1,0 +1,40 @@
+# A Postgres database for this project, running in Docker on your PC.
+#
+#   Start:  docker compose up -d     (-d: run in the background)
+#   Check:  docker compose ps        (wait until it says "healthy")
+#   Stop:   docker compose down      (the data stays, in the volume below)
+#
+# ROAD MAP of this file
+#   services.postgres   one container: the database server
+#   volumes.pgdata      a place on your PC where the database keeps its files
+
+services:
+  postgres:
+    # 1. The exact version, never "latest": the same database on every PC and every day.
+    image: postgres:16.4
+
+    # 2. Settings the image reads when it starts the first time.
+    #    These are practice values for your own PC only. Real passwords never go into Git.
+    environment:
+      POSTGRES_USER: housing
+      POSTGRES_PASSWORD: housing
+      POSTGRES_DB: housing
+
+    # 3. "PC port : container port". Inside, Postgres listens on 5432. Your nio project already
+    #    uses 5432 on your PC, so this one is reached on 5433, and both can run at the same time.
+    ports:
+      - "5433:5432"
+
+    # 4. Keep the database files in a named volume, so the data survives "docker compose down".
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    # 5. Docker asks Postgres every 5 seconds "are you ready?", and shows the answer as "healthy".
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U housing -d housing"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
