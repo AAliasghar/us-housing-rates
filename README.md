@@ -92,11 +92,22 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
+## Local database (Stage 3, in progress)
+
+Stage 3 moves the data into Postgres. Start it with Docker:
+
+```bash
+docker compose up -d        # Postgres 16.4 on port 5433
+docker compose ps           # wait for "healthy"
+docker compose down         # stop it; the data stays in a Docker volume
+```
+
 ## Project structure
 
 ```
 us-housing-rates/
 ├── .github/workflows/ci.yml   # CI: runs the tests on GitHub
+├── docker-compose.yml         # Postgres for local development (Stage 3)
 ├── pipeline/fred.py           # downloads a FRED series and reads it into a table (date, value)
 ├── pipeline/transform.py      # monthly averages, and joining series by month
 ├── pipeline/store.py          # saves a table to a CSV file and reads it back
