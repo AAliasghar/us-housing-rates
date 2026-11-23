@@ -6,12 +6,16 @@ ROAD MAP of this file
     Test 3  fetch_series downloads the right address and returns a clean table.
     Test 4  A web page instead of data stops with a clear error.
     Test 5  A bad series name is refused before anything is downloaded.
+    Tests 6-9  An optional start date asks FRED for that date onwards only (step 13b).
 
     These tests never use the internet. Instead of the real download, tests 3 to 5 give
     fetch_series a small fake download function, written right inside the test. The fake
     remembers which address it was asked for, and returns text that we chose.
 """
 
+from datetime import date
+
+import pandas as pd
 import pytest
 
 from pipeline.fred import fetch_series, fred_url
@@ -75,3 +79,33 @@ def test_a_bad_series_name_is_refused_before_anything_is_downloaded():
 
     # Nothing was downloaded: no time wasted, and no strange address sent to FRED.
     assert asked_for == []
+
+
+def test_fred_url_with_a_start_date_asks_for_that_date_onwards():
+    url = fred_url("MORTGAGE30US", start=date(2026, 9, 1))
+
+    assert url == "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US&cosd=2026-09-01"
+
+
+def test_fred_url_accepts_a_pandas_timestamp_as_start():
+    url = fred_url("MORTGAGE30US", start=pd.Timestamp("2026-09-01"))
+
+    assert url.endswith("&cosd=2026-09-01")
+
+
+def test_a_start_date_as_text_is_refused():
+    # Text is not checked, so "2026-9-1" or "tomorrow" would reach FRED unnoticed.
+    with pytest.raises(TypeError, match="date"):
+        fred_url("MORTGAGE30US", start="2026-09-01")
+
+
+def test_fetch_series_passes_the_start_date_to_the_download():
+    asked_for = []
+
+    def fake_download(url):
+        asked_for.append(url)
+        return "observation_date,MORTGAGE30US\n2026-09-03,6.71\n"
+
+    fetch_series("MORTGAGE30US", start=date(2026, 9, 1), download=fake_download)
+
+    assert asked_for == ["https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US&cosd=2026-09-01"]

@@ -18,6 +18,7 @@ The first line holds the column names. The blank after 2025-10-01 means FRED has
 
 import io
 import urllib.request
+from datetime import date
 
 import pandas as pd
 
@@ -81,21 +82,25 @@ def read_series(csv_text: str) -> pd.DataFrame:
     return table
 
 
-# fred_url: build the web address of one FRED series.
-#
-#   1. Check that the name has only plain letters and digits. If not, stop with a clear error.
-#   2. Put the name at the end of FRED's address, and give it back.
-#
-# Example: "MORTGAGE30US" becomes "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US"
-def fred_url(series_id: str) -> str:
-    # 1. Check the name. Every FRED series name is plain letters and digits, like UNRATE or T10Y2Y.
-    # isascii() means "only plain English characters", and isalnum() means "only letters and digits".
-    # An empty name fails too. This stops typos, and stops extra text that would change the address.
+def fred_url(series_id: str, start: date | None = None) -> str:
+    """Return the CSV address of one FRED series, optionally from `start` onwards.
+
+    Raises ValueError for a series name that is not plain letters and digits, and
+    TypeError when `start` is not a date (a pandas Timestamp is accepted).
+    """
+    # Plain letters and digits only: anything else could change the address.
     if not (series_id.isascii() and series_id.isalnum()):
         raise ValueError("Not a valid FRED series name: '" + series_id + "'")
 
-    # 2. Put the name at the end of FRED's address.
-    return FRED_CSV_ADDRESS + series_id
+    url = FRED_CSV_ADDRESS + series_id
+    if start is None:
+        return url
+
+    # Text is refused because nothing checks it before it reaches FRED.
+    if not isinstance(start, date):
+        raise TypeError(f"start must be a date, got {type(start).__name__}")
+    # strftime, not isoformat: a Timestamp's isoformat adds a time of day, which FRED does not accept.
+    return f"{url}&cosd={start.strftime('%Y-%m-%d')}"
 
 
 # download_text: download the text at a web address.
@@ -113,20 +118,11 @@ def download_text(url: str) -> str:
         return response.read().decode("utf-8")
 
 
-# fetch_series: name of a series in, clean table out.
-#
-#   1. Build the address. A bad name stops here, before anything is downloaded.
-#   2. Download the text.
-#   3. Turn the text into a clean table with read_series.
-#
-# "download=download_text" means: if nobody says which download function to use, use the real one.
-# The tests pass in a fake one instead, so they need no internet.
-def fetch_series(series_id: str, download=download_text) -> pd.DataFrame:
-    # 1. Build the address.
-    url = fred_url(series_id)
+def fetch_series(series_id: str, start: date | None = None, download=download_text) -> pd.DataFrame:
+    """Download one FRED series, optionally from `start` onwards, as a (date, value) table.
 
-    # 2. Download the text.
-    text = download(url)
-
-    # 3. Turn the text into a clean table, and give it back.
-    return read_series(text)
+    `download` is replaceable so that tests run without the internet.
+    """
+    # The address is built and checked first, so a bad name or start never reaches the network.
+    url = fred_url(series_id, start=start)
+    return read_series(download(url))
