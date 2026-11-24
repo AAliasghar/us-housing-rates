@@ -115,6 +115,8 @@ us-housing-rates/
 ├── pipeline/change.py         # % change from each month to N months later (Stage 2)
 ├── pipeline/events.py         # finds the first month of each big rate rise or fall
 ├── pipeline/after_events.py   # price change 3, 6, 12, 24 months after each big move
+├── pipeline/db.py             # connects to Postgres and creates the tables (Stage 3)
+├── sql/                       # the SQL that creates the raw table
 ├── tests/                     # the rules the code must follow; they need no internet
 ├── requirements-dev.txt       # exact tool versions
 └── pyproject.toml             # pytest settings
