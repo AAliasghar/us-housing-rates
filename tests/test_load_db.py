@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from pipeline.db import create_tables
-from pipeline.load import read_watermark, upsert
+from pipeline.load import load_all, load_series, read_watermark, upsert
 
 pytestmark = pytest.mark.integration
 
@@ -96,3 +96,38 @@ def test_a_blank_that_gets_a_value_later_is_updated(raw):
 
 def test_an_empty_download_changes_nothing(raw):
     assert upsert(raw, "TEST", table([])) == 0
+
+
+def recording_fetch(tables):
+    """A fake fetch_series that returns prepared tables and records each call."""
+    calls = []
+
+    def fetch(series_id, start=None):
+        calls.append((series_id, start))
+        return tables[series_id]
+
+    return fetch, calls
+
+
+def test_the_first_load_of_a_series_downloads_everything(raw):
+    fetch, calls = recording_fetch({"TEST": table([("2026-10-01", 1.0), ("2026-11-01", 2.0)])})
+
+    assert load_series(raw, "TEST", fetch=fetch) == 2
+    assert calls == [("TEST", None)]
+
+
+def test_the_next_load_starts_12_months_before_the_watermark(raw):
+    fetch, calls = recording_fetch({"TEST": table([("2026-10-01", 1.0), ("2026-11-01", 2.0)])})
+    load_series(raw, "TEST", fetch=fetch)
+
+    assert load_series(raw, "TEST", fetch=fetch) == 0
+    assert calls[1] == ("TEST", date(2025, 11, 1))
+
+
+def test_load_all_loads_every_series_and_reports_the_changes(raw):
+    fetch, _ = recording_fetch({
+        "A": table([("2026-11-01", 1.0)]),
+        "B": table([("2026-11-01", 2.0), ("2026-12-01", 3.0)]),
+    })
+
+    assert load_all(raw, series_ids=["A", "B"], fetch=fetch) == {"A": 1, "B": 2}
