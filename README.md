@@ -102,6 +102,14 @@ docker compose ps           # wait for "healthy"
 docker compose down         # stop it; the data stays in a Docker volume
 ```
 
+Then load the FRED series into it. The first run downloads everything; later runs download only the last 12 months and change only new or revised values:
+
+```bash
+python -m pipeline.load
+# HPIPONM226S: 429 rows changed       (first run, 2026-11-26)
+# MORTGAGE30US: 2905 rows changed
+```
+
 ## Project structure
 
 ```

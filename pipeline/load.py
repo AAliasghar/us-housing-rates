@@ -1,9 +1,18 @@
-"""Incremental load of FRED series into raw.fred_observations."""
+"""Incremental load of FRED series into raw.fred_observations.
+
+Run it from the project folder, with Postgres running:  python -m pipeline.load
+"""
 
 from datetime import date
 
 import pandas as pd
 import psycopg
+
+from pipeline.db import connect, create_tables
+from pipeline.fred import fetch_series
+
+# The series this project loads. Adding one is a one-line change.
+SERIES = ["HPIPONM226S", "MORTGAGE30US"]
 
 # FRED revises published values, so every load also rereads the months before the watermark.
 LOOKBACK_MONTHS = 12
@@ -41,3 +50,28 @@ def upsert(conn: psycopg.Connection, series_id: str, table: pd.DataFrame) -> int
     with conn.cursor() as cursor:
         cursor.executemany(UPSERT, rows)
         return cursor.rowcount
+
+
+def load_series(conn: psycopg.Connection, series_id: str, fetch=fetch_series) -> int:
+    """Download what is new for one series, upsert it, and return how many rows changed."""
+    start_date = download_start(read_watermark(conn, series_id), LOOKBACK_MONTHS)
+    table = fetch(series_id, start=start_date)
+    return upsert(conn, series_id, table)
+
+
+def load_all(conn: psycopg.Connection, series_ids=SERIES, fetch=fetch_series) -> dict[str, int]:
+    """Load every series and return the changed rows per series. The caller commits."""
+    create_tables(conn)
+    return {series_id: load_series(conn, series_id, fetch=fetch) for series_id in series_ids}
+
+
+def main() -> None:
+    # One transaction for the whole run: the with-block commits at the end, or rolls back
+    # everything if any series fails, so the table never holds half a run.
+    with connect() as conn:
+        for series_id, changed in load_all(conn).items():
+            print(f"{series_id}: {changed} rows changed")
+
+
+if __name__ == "__main__":
+    main()
